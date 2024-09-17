@@ -1,20 +1,152 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+/**
+ * Sample React Native App
+ * https://github.com/facebook/react-native
+ *
+ * @format
+ * @flow strict-local
+ */
 
-export default function App() {
+import React from 'react';
+import { Alert, Button, StyleSheet, Text, View } from 'react-native';
+import {
+  useAuth0,
+  Auth0Provider,
+  LocalAuthenticationOptions,
+  LocalAuthenticationLevel,
+  LocalAuthenticationStrategy,
+} from 'react-native-auth0';
+import config from './auth0-configuration';
+import { NavigationProp, NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+const Stack = createNativeStackNavigator();
+
+const Home = ({ navigation }) => {
+  const { authorize, clearSession, user, getCredentials, error } = useAuth0();
+
+  const onLogin = async () => {
+    try{
+    console.log("loggging innnn")
+    let credential = await authorize(
+      { scope: 'openid profile email', additionalParameters: { prompt: 'login' } },
+      { customScheme: 'hofbetsmobile' }
+    );
+    console.log("credential", credential)
+    const credentials = await getCredentials(undefined, 0, {});
+    Alert.alert('AccessToken: ' + credentials?.accessToken);
+  }catch(e){
+    console.log("error", e)
+  }
+  };
+
+  const loggedIn = user !== undefined && user !== null;
+
+  const onLogout = async () => {
+    await clearSession();
+  };
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+      <Text style={styles.header}> Auth0Sample - Login </Text>
+      {user && <Text>You are logged in as {user.name}</Text>}
+      {!user && <Text>You are not logged in</Text>}
+      <Button
+        onPress={loggedIn ? onLogout : onLogin}
+        title={loggedIn ? 'Log Out' : 'Log In'}
+      />
+      <Button
+        title="Go to Second Screen"
+        onPress={() => navigation.navigate('Second')}
+      />
+      {error && <Text style={styles.error}>{error.message}</Text>}
     </View>
   );
-}
+};
+
+const HomeProvider = ({ navigation }) => {
+
+
+  return (
+    <Auth0Provider
+      domain={config.domain}
+      clientId={config.clientId}
+    >
+      <Home navigation={navigation} />
+    </Auth0Provider>
+  );
+};
+
+const SecondScreen = () => {
+  const { authorize, clearSession, user, getCredentials, error } = useAuth0();
+
+  const onLogin = async () => {
+    let credential = await authorize(
+      { scope: 'openid profile email', additionalParameters: { prompt: 'login' } },
+      { customScheme: 'hofbetsmobile' }
+    );
+    const credentials = await getCredentials(undefined, 0, {});
+    Alert.alert('AccessToken: ' + credentials?.accessToken);
+  };
+
+  const loggedIn = user !== undefined && user !== null;
+
+  const onLogout = async () => {
+    await clearSession();
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.header}> Auth0Sample - Login </Text>
+      {user && <Text>You are logged in as {user.name}</Text>}
+      {!user && <Text>You are not logged in</Text>}
+      <Button
+        onPress={loggedIn ? onLogout : onLogin}
+        title={loggedIn ? 'Log Out' : 'Log In'}
+      />
+      {error && <Text style={styles.error}>{error.message}</Text>}
+    </View>
+  );
+};
+
+const SecondScreenProvider = () => {
+  return (
+    <Auth0Provider
+      domain={config.domain}
+      clientId={config.clientId}
+    >
+      <SecondScreen />
+    </Auth0Provider>
+  );
+};
+
+const App = () => {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeProvider} />
+        <Stack.Screen name="Second" component={SecondScreenProvider} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF',
+  },
+  header: {
+    fontSize: 20,
+    textAlign: 'center',
+    margin: 10,
+  },
+  error: {
+    margin: 20,
+    textAlign: 'center',
+    color: '#D8000C',
   },
 });
+
+export default App;

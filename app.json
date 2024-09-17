@@ -12,14 +12,25 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sonnyh.StickerSmash"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.sonnyh.StickerSmash"
     },
+    "plugins": [
+      [
+        "react-native-auth0",
+        {
+          "domain": "login.hofbets.com",
+          "customScheme": "hofbetsmobile"
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     }
